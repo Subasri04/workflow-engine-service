@@ -1,13 +1,12 @@
-import { Document } from "mongoose";
-
 export type StepType = "task" | "approval" | "notification";
 
-export interface IStep extends Document {
+export interface Step {
+    _id: string;
     workflow_id: string;
     name: string;
     step_type: StepType;
     order: number;
-    metadata?: Record<string, any>;
-    created_at: Date;
-    updated_at: Date;
+    metadata: Record<string, string>;
+    created_at: string;
+    updated_at: string;
 }

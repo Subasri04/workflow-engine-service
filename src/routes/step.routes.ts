@@ -3,9 +3,10 @@ import * as controller from "../controllers/step.controller";
 
 const router = Router();
 
-router.post("/workflows/:workflowId/steps", controller.createStep);
-router.get("/workflows/:workflowId/steps", controller.getSteps);
-router.put("/steps/:id", controller.updateStep);
-router.delete("/steps/:id", controller.deleteStep);
+router.post("/:workflowId", controller.createStep);
+router.get("/step/:id", controller.getStepById);
+router.get("/:workflowId", controller.getSteps);
+router.put("/:id", controller.updateStep);
+router.delete("/:id", controller.deleteStep);
 
 export default router;

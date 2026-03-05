@@ -1,19 +1,48 @@
-import mongoose, { Schema } from "mongoose";
-import { IWorkflow } from "../types/workflow.types";
+import mongoose, { Schema, Document } from "mongoose";
 
-const WorkflowSchema = new Schema<IWorkflow>(
+export interface IWorkflow extends Document {
+    name: string;
+    version: number;
+    is_active: boolean;
+    input_schema: Record<string, unknown>;
+    start_step_id?: string;
+    created_at: Date;
+    updated_at: Date;
+}
+
+const WorkflowSchema: Schema = new Schema(
     {
-        name: { type: String, required: true },
-        version: { type: Number, required: true },
-        is_active: { type: Boolean, default: true },
-        input_schema: { type: Object, required: true },
-        start_step_id: { type: String }
+        name: {
+            type: String,
+            required: true,
+        },
+
+        version: {
+            type: Number,
+            default: 1,
+        },
+
+        is_active: {
+            type: Boolean,
+            default: true,
+        },
+
+        input_schema: {
+            type: Schema.Types.Mixed,
+            required: true,
+        },
+
+        start_step_id: {
+            type: Schema.Types.ObjectId,
+            ref: "Step",
+        },
     },
     {
-        timestamps: { createdAt: "created_at", updatedAt: "updated_at" }
+        timestamps: {
+            createdAt: "created_at",
+            updatedAt: "updated_at",
+        },
     }
 );
-
-WorkflowSchema.index({ name: 1, version: 1 }, { unique: true });
 
 export default mongoose.model<IWorkflow>("Workflow", WorkflowSchema);

@@ -1,17 +1,33 @@
 import Workflow from "../models/workflow.model";
+import WorkflowModel, { IWorkflow } from "../models/workflow.model"
 
-export async function createWorkflow(data: any) {
-    const existing = await Workflow.find({ name: data.name }).sort({ version: -1 });
+interface CreateWorkflowInput {
+    name: string
+    input_schema: Record<string, {
+        type: string
+        required: boolean
+        allowed_values?: string[]
+    }>
+}
 
-    const version = existing.length > 0 ? existing[0].version + 1 : 1;
+export const createWorkflow = async (
+    payload: CreateWorkflowInput
+): Promise<IWorkflow> => {
 
-    const workflow = await Workflow.create({
-        ...data,
+    const latestWorkflow = await WorkflowModel
+        .findOne({ name: payload.name })
+        .sort({ version: -1 })
+
+    const version = latestWorkflow ? latestWorkflow.version + 1 : 1
+
+    const workflow = await WorkflowModel.create({
+        name: payload.name,
         version,
+        input_schema: payload.input_schema,
         is_active: true
-    });
+    })
 
-    return workflow;
+    return workflow
 }
 
 export async function getWorkflows() {

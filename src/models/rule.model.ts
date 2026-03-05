@@ -1,26 +1,36 @@
-import mongoose, { Schema } from "mongoose";
-import { IRule } from "../types/rule.types";
+import mongoose, { Schema, Document, Types } from "mongoose";
+
+export interface IRule extends Document {
+    step_id: Types.ObjectId;
+    condition: string;
+    next_step_id?: Types.ObjectId | null;
+    priority: number;
+    created_at: Date;
+    updated_at: Date;
+}
 
 const RuleSchema = new Schema<IRule>(
     {
         step_id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Step",
             required: true
         },
-        condition: { type: String, required: true },
+        condition: {
+            type: String,
+            required: true
+        },
         next_step_id: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Step",
             default: null
         },
-        priority: { type: Number, required: true }
+        priority: {
+            type: Number,
+            required: true
+        }
     },
-    {
-        timestamps: { createdAt: "created_at", updatedAt: "updated_at" }
-    }
+    { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );
-
-RuleSchema.index({ step_id: 1, priority: 1 });
 
 export default mongoose.model<IRule>("Rule", RuleSchema);

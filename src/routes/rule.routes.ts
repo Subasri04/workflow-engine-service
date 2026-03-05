@@ -3,9 +3,10 @@ import * as controller from "../controllers/rule.controller";
 
 const router = Router();
 
-router.post("/steps/:stepId/rules", controller.createRule);
-router.get("/steps/:stepId/rules", controller.getRules);
-router.put("/rules/:id", controller.updateRule);
-router.delete("/rules/:id", controller.deleteRule);
+router.post("/:stepId", controller.createRule);
+router.get("/:stepId", controller.getRules);
+router.put("/:id", controller.updateRule);
+router.delete("/:id", controller.deleteRule);
 
+router.post("/test-rule", controller.testRuleEngine);
 export default router;

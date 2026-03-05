@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as ruleService from "../services/rule.service";
+import { evaluateRules } from "../utils/ruleEngine";
 
 export async function createRule(req: Request, res: Response) {
     try {
@@ -29,4 +30,15 @@ export async function deleteRule(req: Request, res: Response) {
     const id = req.params.id as string;
     await ruleService.deleteRule(id);
     res.json({ message: "Deleted" });
+}
+
+export async function testRuleEngine(req: Request, res: Response) {
+  try {
+    const { stepId, data } = req.body;
+
+    const result = await evaluateRules(stepId, data);
+    return res.json(result);
+  } catch (error: any) {
+    return res.status(400).json({ message: error.message });
+  }
 }
