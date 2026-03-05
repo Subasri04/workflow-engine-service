@@ -1,48 +1,57 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export interface IInputField {
+    type: "string" | "number" | "boolean";
+    required: boolean;
+    allowed_values?: string[];
+}
+
 export interface IWorkflow extends Document {
     name: string;
+    description?: string;
     version: number;
-    is_active: boolean;
-    input_schema: Record<string, unknown>;
-    start_step_id?: string;
+    status: "active" | "inactive";
+    input_schema: Record<string, IInputField>;
     created_at: Date;
     updated_at: Date;
 }
 
-const WorkflowSchema: Schema = new Schema(
+const InputFieldSchema = new Schema<IInputField>(
     {
-        name: {
+        type: {
             type: String,
-            required: true,
+            enum: ["string", "number", "boolean"],
+            required: true
         },
-
-        version: {
-            type: Number,
-            default: 1,
-        },
-
-        is_active: {
+        required: {
             type: Boolean,
-            default: true,
+            default: false
         },
-
-        input_schema: {
-            type: Schema.Types.Mixed,
-            required: true,
-        },
-
-        start_step_id: {
-            type: Schema.Types.ObjectId,
-            ref: "Step",
-        },
+        allowed_values: {
+            type: [String],
+            default: undefined
+        }
     },
+    { _id: false }
+);
+
+const WorkflowSchema = new Schema<IWorkflow>(
     {
-        timestamps: {
-            createdAt: "created_at",
-            updatedAt: "updated_at",
+        name: { type: String, required: true },
+        description: { type: String },
+        version: { type: Number, default: 1 },
+        status: {
+            type: String,
+            enum: ["active", "inactive"],
+            default: "active"
         },
-    }
+        input_schema: {
+            type: Map,
+            of: InputFieldSchema,
+            default: {}
+        }
+    },
+    { timestamps: true }
 );
 
 export default mongoose.model<IWorkflow>("Workflow", WorkflowSchema);

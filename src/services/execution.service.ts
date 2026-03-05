@@ -3,16 +3,18 @@ import Step from "../models/step.model";
 import Execution from "../models/execution.model";
 import { evaluateRules } from "../utils/ruleEngine";
 
-export async function startExecution(workflowId: string, data: any) {
+const MAX_ITERATIONS = 20;
 
-  // 1️⃣ Get workflow
+export async function startExecution(
+  workflowId: string,
+  data: Record<string, unknown>
+) {
   const workflow = await Workflow.findById(workflowId);
 
   if (!workflow) {
     throw new Error("Workflow not found");
   }
 
-  // 2️⃣ Get first step (lowest order)
   const firstStep = await Step.findOne({
     workflow_id: workflowId
   }).sort({ order: 1 });
@@ -21,7 +23,6 @@ export async function startExecution(workflowId: string, data: any) {
     throw new Error("No steps found for workflow");
   }
 
-  // 3️⃣ Create execution
   const execution = await Execution.create({
     workflow_id: workflow._id,
     workflow_version: workflow.version,
@@ -33,41 +34,38 @@ export async function startExecution(workflowId: string, data: any) {
   });
 
   let currentStep = firstStep;
+  let iteration = 0;
 
-  // 4️⃣ Execute workflow
-  while (currentStep) {
+  while (currentStep && iteration < MAX_ITERATIONS) {
 
-    // Evaluate rules
-    const evaluation = await evaluateRules(
+    const ruleResult = await evaluateRules(
       currentStep._id.toString(),
       data
     );
 
-    // Log step execution
     execution.logs.push({
       step_id: currentStep._id,
       step_name: currentStep.name,
       executed_at: new Date(),
-      rule_logs: evaluation.logs
+      rule_logs: ruleResult.logs
     });
 
-    // If no next step → workflow ends
-    if (!evaluation.nextStepId) {
+    if (!ruleResult.nextStepId) {
       break;
     }
 
-    // Move to next step
-    const nextStep = await Step.findById(evaluation.nextStepId);
+    currentStep = await Step.findById(ruleResult.nextStepId);
+    execution.current_step_id = currentStep?._id ?? null;
 
-    if (!nextStep) {
-      break;
-    }
-
-    currentStep = nextStep;
-    execution.current_step_id = nextStep._id;
+    iteration++;
   }
 
-  execution.status = "completed";
+  if (iteration >= MAX_ITERATIONS) {
+    execution.status = "failed";
+  } else {
+    execution.status = "completed";
+  }
+
   execution.ended_at = new Date();
   execution.current_step_id = null;
 

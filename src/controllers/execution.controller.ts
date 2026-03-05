@@ -75,7 +75,7 @@ export async function cancelExecution(req: Request, res: Response) {
   if (execution.status === "completed")
     return res.status(400).json({ message: "Cannot cancel completed execution" });
 
-  execution.status = "canceled";
+  execution.status = "cancelled";
   execution.ended_at = new Date();
   await execution.save();
 
